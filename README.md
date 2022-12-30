@@ -1,6 +1,7 @@
 # raytracer
 
 A simple raytracer written in C++.
+Running the program generates a scene with randomly sized and randomly positioned spheres to demonstrate the raytracer.
 
 ## Usage
 
