@@ -158,7 +158,7 @@ void render(const vector<Object*>& objects) {
 
 
 	// init output file
-	ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
+	ofstream ofs("./image.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << width << " " << height << "\n255\n";
 
 	// for each pixel

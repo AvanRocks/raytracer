@@ -13,6 +13,8 @@ To run:
 ```
 $ ./raytracer
 ```
+A file named `image.ppm` will be created in the current directory.
+You may need to convert this file to PNG format in order to view it with your image viewer.
 
 ## Advanced
 
