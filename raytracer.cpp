@@ -220,7 +220,6 @@ void loadMesh(vector<Object*> &objects, ifstream& file) {
 void genScene(vector<Object*> &objects) {
 	objects.push_back(new Sphere(Vec(-5*width,-5*height, eye.z - width), 100, Vec(1,1,1), 2, Diff));
 	objects.push_back(new Sphere(Vec(2*width,-20*height, 10*width), 100, Vec(1,1,1), 1, Diff));
-	//objects.push_back(new Sphere(Vec(0,-3000,500), 100, Vec(1,1,1), 2, Diff));
 
 	// floor
 	int floorY = 2*height;
