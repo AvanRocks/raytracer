@@ -10,14 +10,13 @@
 #include "Rectangle.h"
 using namespace std;
 
-int width = 3840, height = 2160; // 4K UHD, 16:9
-//int width = 1920, height = 1080; // FHD, 16:9
+//int width = 3840, height = 2160; // 4K UHD, 16:9
+int width = 1920, height = 1080; // FHD, 16:9
 //int width = 1366, height = 768; // HD, ~16:9 (my laptop screen)
 //int width = 640, height = 480; // nHD, 16:9
 //int width = 100, height = 100; // bruh
-//Vec backgroundCol(0.235294, 0.67451, 0.843137); 
-//Vec backgroundCol(0.7);
-//Vec backgroundCol(0.53, 0.81, 0.92);
+
+
 Vec backgroundCol = Vec(3) * Vec(0.53, 0.98, 1);
 Vec eye(0, 0, -2*width); // projection point
 int maxDepth = 10;
