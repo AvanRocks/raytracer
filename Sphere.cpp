@@ -21,15 +21,12 @@ bool Sphere::intersect(const Vec &p, const Vec &dir, double &t) const {
 	if (c2 > r2) {
 		// p is outside the sphere
 		t = b - d;
-		//tfar = b + d;
 	} else if (b >= 0) {
 		// p is inside the sphere and dir is facing the center
 		t = b + d;
-		//tfar = std::numeric_limits<double>::max();
 	} else {
 		// p is inside the sphere and dir is facing away from the center
 		t = - b + d;
-		//tfar = std::numeric_limits<double>::max();
 	}
 
 	return true;

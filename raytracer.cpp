@@ -10,14 +10,19 @@
 #include "Rectangle.h"
 using namespace std;
 
-int width = 3840, height = 2160; // image width and height
-//int width = 640, height = 480; // image width and height
-//int width = 100, height = 100; // image width and height
+int width = 3840, height = 2160; // 4K UHD, 16:9
+//int width = 1920, height = 1080; // FHD, 16:9
+//int width = 1366, height = 768; // HD, ~16:9 (my laptop screen)
+//int width = 640, height = 480; // nHD, 16:9
+//int width = 100, height = 100; // bruh
 //Vec backgroundCol(0.235294, 0.67451, 0.843137); 
 //Vec backgroundCol(0.7);
 //Vec backgroundCol(0.53, 0.81, 0.92);
 Vec backgroundCol = Vec(3) * Vec(0.53, 0.98, 1);
+Vec eye(0, 0, -2*width); // projection point
 int maxDepth = 10;
+
+int numSpheres = 40;
 
 // find closest point of intersection
 bool findClosestInt(const Vec &p, const Vec&dir, const vector<Object*> &objects, const Object **object, double *distance) {
@@ -136,14 +141,21 @@ Vec getColor(const Vec &p, const Vec &dir, const vector<Object*> &objects, int d
 
 }
 
+Vec getPixelRay(int x, int y) {
+	// compute ray through pixel (x,y)
+	double centerX = x + 0.5, centerY = y + 0.5;
+	Vec pixel(centerX - width/2, centerY - height/2, 0);
+	Vec rayDir = pixel - eye;
+	rayDir.normalize();
+	return rayDir;
+}
+
+
 void render(const vector<Object*>& objects) {
 	// top-left of screen is orgin (0,0)
 	// positive y is downwards
 	// positive x is rightwards
 
-	// projection point
-	Vec eye(0, 0, -width);
-	//Vec eye(0, 0, -2*width);
 
 	// init output file
 	ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
@@ -158,13 +170,9 @@ void render(const vector<Object*>& objects) {
 				//printf("%d%%\r", (int)round(100*(double)y/height));
 			}
 
-			// compute ray through pixel
-			double centerX = x + 0.5, centerY = y + 0.5;
-			Vec pixel(centerX - width/2, centerY - height/2, 0);
-			Vec rayDir = pixel - eye;
-			rayDir.normalize();
+			Vec rayDir = getPixelRay(x, y);
 
-			Vec oldColor = getColor(pixel, rayDir, objects, 0);
+			Vec oldColor = getColor(eye, rayDir, objects, 0);
 		  Vec color = 2.0 / M_PI * Vec(atan(oldColor.x), atan(oldColor.y), atan(oldColor.z));
 			/*
 		  Vec color = Vec(clamp(oldColor.x, 0.0, 1.0), 
@@ -209,6 +217,83 @@ void loadMesh(vector<Object*> &objects, ifstream& file) {
 
 }
 
+void genScene(vector<Object*> &objects) {
+	objects.push_back(new Sphere(Vec(-5*width,-5*height, eye.z - width), 100, Vec(1,1,1), 2, Diff));
+	objects.push_back(new Sphere(Vec(2*width,-20*height, 10*width), 100, Vec(1,1,1), 1, Diff));
+	//objects.push_back(new Sphere(Vec(0,-3000,500), 100, Vec(1,1,1), 2, Diff));
+
+	// floor
+	int floorY = 2*height;
+	int size = 100*width;
+	Rectangle *rec = new Rectangle(Vec(-size, floorY, -size),
+																 Vec(size, floorY, -size),
+																 Vec(-size, floorY, size),
+																 Vec(1.5) * Vec(0.33, 0.62, 0.20),
+																 0, Diff);
+	objects.push_back(rec);
+
+	vector<Sphere*> spheres;
+	for (int i = 1; i <= numSpheres;) {
+		Vec bottomLeft = getPixelRay(0, height);
+		double t;
+		rec->intersect(eye, bottomLeft, t);
+		Vec pBottomLeft = (eye + t * bottomLeft);
+		double minZ = pBottomLeft.z;
+		double rangeX = -2 * pBottomLeft.x;
+		double rangeXFac = rangeX / pBottomLeft.z;
+
+		double r;
+		if (i == 1) r = (rand() % int(rangeX/4)) + int(rangeX/3);
+		else r = (rand() % int(rangeX/20)) + int(rangeX/20);
+
+		double z;
+		if (i == 1) z = (rand() % 20 * width) + r + minZ;
+		else z = (rand() % 40 * width) + r + minZ;
+		
+		double x;
+		if (i == 1) x = (rand() % int(0.8 * rangeXFac * z)) - int(0.8 * rangeXFac * z / 2);
+		else x = (rand() % int(rangeXFac * z)) - int(rangeXFac * z/2);
+
+		double y = floorY  - r;
+
+		double c1 = double(rand() % 1000)/1000;
+		double c2 = double(rand() % 1000)/1000;
+		double c3 = double(rand() % 1000)/1000;
+
+		MaterialType type;
+		if (i == 1) type = Refl;
+		else {
+			int t = rand() % 100;
+			if (t < 80) type = Diff;
+			else if (t < 90) type = Refl;
+			else if (t < 100) type = ReflAndRefr;
+		}
+
+		double idxOfRefr = 1;
+		if (type == ReflAndRefr) {
+			idxOfRefr = ((rand() % 30) + 10) / 2.0;
+		}
+
+		Vec coords(x,y,z);
+		Vec col(c1,c2,c3);
+		Sphere *s = new Sphere(coords, r, col, 0, type, idxOfRefr);
+
+		bool inter = false;
+		for (const Sphere *s : spheres) {
+			Vec v = coords - s->center;
+			if (v.mag() <= s->r + r + 100) {
+				inter = true;
+			}
+		}
+
+		if (!inter) {
+			objects.push_back(s);
+			spheres.push_back(s);
+			++i;
+		}
+	}
+}
+
 int main(int argc, char **argv) {
 	vector<Object*> objects;
 	
@@ -246,11 +331,11 @@ int main(int argc, char **argv) {
 	objects.push_back(&rec);
 	*/
 
-	//objects.push_back(new Sphere(Vec(0,0,-500), 100, Vec(1,1,1), 2, Diff));
-	//objects.push_back(new Sphere(Vec(-width,-height,0), 100, Vec(1,1,1), 2, Diff));
-
 	/*
-	ifstream file("monkey.obj");
+	objects.push_back(new Sphere(Vec(0,-500,-3000), 100, Vec(1,1,1), 2, Diff));
+	objects.push_back(new Sphere(Vec(0,-3000,500), 100, Vec(1,1,1), 2, Diff));
+
+	ifstream file("input.obj");
 	if (file.is_open()) {
 		loadMesh(objects, file);
 		file.close();
@@ -258,78 +343,14 @@ int main(int argc, char **argv) {
 		cout << "Error loading mesh from file\n";
 	*/
 
-	// light
-	objects.push_back(new Sphere(Vec(0,-100,-500), 100, Vec(1,1,1), 3, Diff));
-	objects.push_back(new Sphere(Vec(0,-3000,500), 100, Vec(1,1,1), 2, Diff));
-
-	// floor
-	int floorY = 2*height;
-	int size = 100*width;
-	Rectangle rec(
-								Vec(-size, floorY, -size),
-			          Vec(size, floorY, -size),
-								Vec(-size, floorY, size),
-								Vec(1.5) * Vec(0.33, 0.62, 0.20),
-								0, Diff);
-	objects.push_back(&rec);
-
-	if (argc > 1) {
-		long seed = atol(argv[1]);
-		srand(seed);
-	} else {
-		long seed = time(NULL);
+	if (argc > 1) srand(atol(argv[1]));
+	else {
+		int seed = time(NULL);
 		srand(seed);
 		cout << seed << '\n';
 	}
-	vector<Sphere*> spheres;
-	for (int i = 1; i <= 200;) {
-		int a = 0.8 * 30 * width;
 
-		double x;
-		if (i == 1) x = (rand() % int(a/2.0)) - int(a/4.0);
-		else x = (rand() % a) - a/2.0;
-
-		double r;
-		if (i == 1) r = (rand() % 500) + 2000;
-		else r = (rand() % 100) + 300;
-
-		double z;
-		if (i == 1) z = (rand() % 20 * width) + r + width;
-		else z = (rand() % 40 * width) + r + width;
-		//double z = (rand() % 40000) + r + 3000;
-		
-		double y = floorY  - r;
-
-		Vec coords(x,y,z);
-		double c1 = double(rand() % 1000)/1000;
-		double c2 = double(rand() % 1000)/1000;
-		double c3 = double(rand() % 1000)/1000;
-
-		MaterialType type;
-		if (i == 1) type = Refl;
-		else {
-			int t = rand() % 100;
-			if (t < 80) type = Diff;
-			else if (t < 90) type = Refl;
-			else if (t < 100) type = ReflAndRefr;
-		}
-
-		Sphere *s = new Sphere(coords, r, Vec(c1,c2,c3), 0, type);
-
-		bool inter = false;
-		for (const Sphere *s : spheres) {
-			Vec v = coords - s->center;
-			if (v.mag() <= s->r + r + 100) {
-				inter = true;
-			}
-		}
-
-		if (!inter) {
-			objects.push_back(s);
-			spheres.push_back(s);
-			++i;
-		}
-	}
+	genScene(objects);
 
 	render(objects);
 
