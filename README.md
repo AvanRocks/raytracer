@@ -29,3 +29,5 @@ $ ./raytracer 1672386510
 ### Resolution
 By default, the `image.ppm` file is in FHD resolution (1920x1080).
 To set the resolution of the output file, open `raytracer.cpp` and uncomment the desired line near the top.
+A few present resolutions are included in the comment of `raytracer.cpp`.
+To set your own resolution, simply initialize the `width` and `height` variables as desired.
