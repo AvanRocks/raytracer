@@ -16,7 +16,6 @@ int width = 1920, height = 1080; // FHD, 16:9
 //int width = 640, height = 480; // nHD, 16:9
 //int width = 100, height = 100; // bruh
 
-
 Vec backgroundCol = Vec(3) * Vec(0.53, 0.98, 1);
 Vec eye(0, 0, -2*width); // projection point
 int maxDepth = 10;
@@ -296,43 +295,6 @@ int main(int argc, char **argv) {
 	vector<Object*> objects;
 	
 	/*
-	// red sphere
-	objects.push_back(new Sphere(Vec(-500,0,500), 400, Vec(0.8,0.1,0.05), 0.1, ReflAndRefr, 4.5));
-
-	// green sphere
-	objects.push_back(new Sphere(Vec(1000,0,1000), 600, Vec(0.1,0.8,0.14), 0, Diff));
-
-	// transparent sphere
-	objects.push_back(new Sphere(Vec(200,300,400), 100, Vec(0.1,0.8,0.14), 0.3, Diff));
-
-	// white light (top-right)
-	objects.push_back(new Sphere(Vec(5000,-5000,500), 500, Vec(1,1,1), 5, Diff));
-
-	// redish light (top-left)
-	objects.push_back(new Sphere(Vec(-width,-height,0), 100, Vec(1,0.8,0.8), 2, Diff));
-
-	Triangle tri(
-							 Vec(600, 500, 300),
-		         	 Vec(800, 400, 300),
-							 Vec(700, 500, 500),
-							 Vec(1, 0, 0),
-							 0, Diff);
-	objects.push_back(&tri);
-
-	// floor
-	Rectangle rec(
-								Vec(-10*width, 2*height, 0),
-			          Vec(10*width, 2*height, 0),
-								Vec(-10*width, 2*height, 8000),
-								Vec(0.15, 0.1, 0.7),
-								0.2, Diff);
-	objects.push_back(&rec);
-	*/
-
-	/*
-	objects.push_back(new Sphere(Vec(0,-500,-3000), 100, Vec(1,1,1), 2, Diff));
-	objects.push_back(new Sphere(Vec(0,-3000,500), 100, Vec(1,1,1), 2, Diff));
-
 	ifstream file("input.obj");
 	if (file.is_open()) {
 		loadMesh(objects, file);
@@ -351,8 +313,6 @@ int main(int argc, char **argv) {
 	genScene(objects);
 
 	render(objects);
-
-	//for (Object* o : objects) delete o;
 
 	return 0;
 }
